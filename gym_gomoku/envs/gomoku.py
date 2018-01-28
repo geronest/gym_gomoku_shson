@@ -111,7 +111,7 @@ class GomokuEnv(gym.Env):
         
         # reset the board during initialization
         self._reset()
-    
+
     def _seed(self, seed=None):
         self.np_random, seed1 = seeding.np_random(seed)
         # Derive a random seed.
@@ -125,16 +125,19 @@ class GomokuEnv(gym.Env):
         
         # Let the opponent play if it's not the agent's turn, there is no resign in Gomoku
         if self.state.color != self.player_color:
-            self.state, _ = self._exec_opponent_play(self.state, None, None)
-            opponent_action_coord = self.state.board.last_coord
-            self.moves.append(opponent_action_coord)
-        
+            if self.opponent != 'userdefine':
+                self.state, _ = self._exec_opponent_play(self.state, None, None)
+                opponent_action_coord = self.state.board.last_coord
+                self.moves.append(opponent_action_coord)
+            else:
+                self.player_color = 'white' if self.player_color == 'black' else 'black'
+     
         # We should be back to the agent color
         assert self.state.color == self.player_color
         
         # reset action_space
         self.action_space = DiscreteWrapper(self.board_size**2)
-        
+
         self.done = self.state.board.is_terminal()
         return self.state.board.encode()
     
@@ -174,13 +177,16 @@ class GomokuEnv(gym.Env):
         self.action_space.remove(action) # remove current action from action_space
         
         # Opponent play
-        if not self.state.board.is_terminal():
-            self.state, opponent_action = self._exec_opponent_play(self.state, prev_state, action)
-            self.moves.append(self.state.board.last_coord)
-            self.action_space.remove(opponent_action)   # remove opponent action from action_space
-            # After opponent play, we should be back to the original color
-            assert self.state.color == self.player_color
-        
+        if self.opponent != 'userdefine':
+            if not self.state.board.is_terminal():
+                self.state, opponent_action = self._exec_opponent_play(self.state, prev_state, action)
+                self.moves.append(self.state.board.last_coord)
+                self.action_space.remove(opponent_action)   # remove opponent action from action_space
+                # After opponent play, we should be back to the original color
+                assert self.state.color == self.player_color
+        else:
+            self.player_color = 'white' if self.player_color == 'black' else 'black'
+
         # Reward: if nonterminal, there is no 5 in a row, then the reward is 0
         if not self.state.board.is_terminal():
             self.done = False
@@ -196,8 +202,12 @@ class GomokuEnv(gym.Env):
         if win_color == "empty": # draw
             reward = 0.
         else:
-            player_wins = (self.player_color == win_color) # check if player_color is the win_color
-            reward = 1. if player_wins else -1.
+            if self.opponent != 'userdefine':
+                player_wins = (self.player_color == win_color) # check if player_color is the win_color
+                reward = 1. if player_wins else -1.
+            else:
+                reward = 1. if win_color == 'black' else -1.
+
         return self.state.board.encode(), reward, True, {'state': self.state}
     
     def _exec_opponent_play(self, curr_state, prev_state, prev_action):
@@ -223,6 +233,8 @@ class GomokuEnv(gym.Env):
             self.opponent_policy = make_medium_policy(self.np_random)
         elif self.opponent == 'expert':
             self.opponent_policy = make_expert_policy(self.np_random)
+        elif self.opponent == 'userdefine':
+            self.opponent_policy = make_random_policy(self.np_random)
         else:
             raise error.Error('Unrecognized opponent policy {}'.format(self.opponent))
 
