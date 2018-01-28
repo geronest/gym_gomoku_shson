@@ -17,11 +17,6 @@ This project was started by Xichen. His fork can be found at https://github.com/
 ![gym_gomoku_demo](demo/gym_gomoku_demo.gif)
 
 # Installation
-Pip
-```bash
-pip install gym-gomoku
-```
-
 Github
 ```bash
 git clone https://github.com/onetop21/gym-gomoku.git
