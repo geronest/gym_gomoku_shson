@@ -1,0 +1,14 @@
+MANIFEST.in
+README.md
+demo/gym_gomoku_demo.gif
+demo/gym_gomoku_demo.json
+gym_gomoku/__init__.py
+gym_gomoku.egg-info/PKG-INFO
+gym_gomoku.egg-info/SOURCES.txt
+gym_gomoku.egg-info/dependency_links.txt
+gym_gomoku.egg-info/requires.txt
+gym_gomoku.egg-info/top_level.txt
+gym_gomoku/envs/__init__.py
+gym_gomoku/envs/gomoku.py
+gym_gomoku/envs/util.py
+test/test_gomoku.py
